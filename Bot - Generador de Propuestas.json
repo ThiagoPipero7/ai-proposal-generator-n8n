@@ -1,0 +1,411 @@
+{
+  "name": "Bot - Generador de Propuestas",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "=Sos un asistente que crea propuestas comerciales en HTML profesional.\n\nSi el mensaje del usuario contiene una transcripción de audio \n(viene precedida por \"TRANSCRIPCIÓN:\"), analizá el contenido \ncompleto y extraé automáticamente estos datos para la propuesta:\n- Nombre del cliente y empresa\n- Servicio ofrecido\n- Precio\n- Plazo\n- Nombre y empresa del emisor\n\nLuego generá el HTML de la propuesta directamente sin pedir \nconfirmación de los datos.\n\nREGLAS ESTRICTAS:\n1. Con los datos que el usuario te dé, generá la propuesta INMEDIATAMENTE sin pedir nada más.\n2. Para los datos que falten usá estos valores por defecto:\n   - Número de propuesta: 001\n   - Fecha: la de hoy\n   - Fecha validez: 30 días desde hoy\n   - Moneda: USD\n   - Condición de pago: 50% anticipo, 50% a la entrega\n   - Introducción: generala vos de forma profesional según el servicio\n   - Frase destacada: generala vos según el servicio\n   - Términos: generá 4 términos estándar\n\n3. Cuando generes el HTML, respondé ÚNICAMENTE con el HTML completo entre las etiquetas:\n\n[HTML_START]\n\n<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<style>\n  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');\n  \n  * { margin: 0; padding: 0; box-sizing: border-box; }\n  body { font-family: 'Inter', sans-serif; color: #1a1a2e; background: #fff; }\n\n  .cover {\n    height: 297mm;\n    background: linear-gradient(145deg, #0f0c29, #302b63, #24243e);\n    display: flex;\n    flex-direction: column;\n    justify-content: space-between;\n    padding: 60px;\n    page-break-after: always;\n    position: relative;\n    overflow: hidden;\n  }\n  .cover::before {\n    content: '';\n    position: absolute;\n    width: 500px; height: 500px;\n    background: radial-gradient(circle, rgba(99,102,241,0.3) 0%, transparent 70%);\n    top: -100px; right: -100px;\n    border-radius: 50%;\n  }\n  .cover::after {\n    content: '';\n    position: absolute;\n    width: 300px; height: 300px;\n    background: radial-gradient(circle, rgba(168,85,247,0.2) 0%, transparent 70%);\n    bottom: 100px; left: -50px;\n    border-radius: 50%;\n  }\n  .cover-top { position: relative; z-index: 1; }\n  .cover-logo {\n    font-size: 22px;\n    font-weight: 800;\n    color: white;\n    letter-spacing: 2px;\n    text-transform: uppercase;\n    border-left: 4px solid #6366f1;\n    padding-left: 16px;\n  }\n  .cover-badge {\n    display: inline-block;\n    background: rgba(99,102,241,0.2);\n    border: 1px solid rgba(99,102,241,0.5);\n    color: #a5b4fc;\n    padding: 6px 16px;\n    border-radius: 30px;\n    font-size: 12px;\n    font-weight: 500;\n    letter-spacing: 2px;\n    text-transform: uppercase;\n    margin-top: 60px;\n  }\n  .cover-title {\n    font-size: 52px;\n    font-weight: 800;\n    color: white;\n    line-height: 1.1;\n    margin-top: 20px;\n    max-width: 600px;\n  }\n  .cover-title span { color: #818cf8; }\n  .cover-subtitle {\n    font-size: 18px;\n    color: rgba(255,255,255,0.5);\n    margin-top: 16px;\n    font-weight: 300;\n  }\n  .cover-bottom {\n    position: relative;\n    z-index: 1;\n    display: flex;\n    justify-content: space-between;\n    align-items: flex-end;\n    border-top: 1px solid rgba(255,255,255,0.1);\n    padding-top: 30px;\n  }\n  .cover-client-label {\n    font-size: 11px;\n    color: rgba(255,255,255,0.4);\n    letter-spacing: 2px;\n    text-transform: uppercase;\n    margin-bottom: 6px;\n  }\n  .cover-client-name {\n    font-size: 22px;\n    font-weight: 700;\n    color: white;\n  }\n  .cover-client-company {\n    font-size: 14px;\n    color: rgba(255,255,255,0.5);\n    margin-top: 2px;\n  }\n  .cover-meta {\n    text-align: right;\n    font-size: 12px;\n    color: rgba(255,255,255,0.4);\n    line-height: 2;\n  }\n  .cover-meta strong { color: rgba(255,255,255,0.7); }\n\n  .page {\n    padding: 60px;\n    min-height: auto;\n  }\n\n  .page-header {\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    margin-bottom: 50px;\n    padding-bottom: 20px;\n    border-bottom: 2px solid #f1f5f9;\n    page-break-inside: avoid;\n  }\n  .page-header-brand {\n    font-size: 14px;\n    font-weight: 700;\n    color: #6366f1;\n    letter-spacing: 1px;\n    text-transform: uppercase;\n  }\n  .page-header-info {\n    font-size: 12px;\n    color: #94a3b8;\n  }\n\n  .section {\n    margin-bottom: 48px;\n    page-break-inside: avoid;\n  }\n  .section-label {\n    font-size: 10px;\n    font-weight: 700;\n    letter-spacing: 3px;\n    text-transform: uppercase;\n    color: #6366f1;\n    margin-bottom: 20px;\n    display: flex;\n    align-items: center;\n    gap: 10px;\n  }\n  .section-label::after {\n    content: '';\n    flex: 1;\n    height: 1px;\n    background: #e2e8f0;\n  }\n\n  .intro-text {\n    font-size: 16px;\n    line-height: 1.9;\n    color: #475569;\n    font-weight: 300;\n  }\n  .intro-text strong { color: #1e293b; font-weight: 600; }\n\n  .highlight-box {\n    background: linear-gradient(135deg, #f8f7ff, #f0f4ff);\n    border: 1px solid #e0e7ff;\n    border-left: 4px solid #6366f1;\n    border-radius: 12px;\n    padding: 28px 32px;\n    margin: 32px 0;\n    page-break-inside: avoid;\n  }\n  .highlight-box p {\n    font-size: 15px;\n    color: #4338ca;\n    line-height: 1.7;\n    font-style: italic;\n  }\n\n  .service-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); page-break-inside: avoid; }\n  .service-table thead tr { background: linear-gradient(135deg, #4f46e5, #6366f1); }\n  .service-table thead th { padding: 16px 20px; text-align: left; font-size: 11px; font-weight: 600; color: white; letter-spacing: 1.5px; text-transform: uppercase; }\n  .service-table tbody tr { background: white; border-bottom: 1px solid #f1f5f9; page-break-inside: avoid; }\n  .service-table tbody tr:nth-child(even) { background: #fafbff; }\n  .service-table tbody td { padding: 18px 20px; font-size: 14px; color: #475569; vertical-align: top; }\n  .service-table tbody td:first-child { font-weight: 600; color: #1e293b; }\n  .price-col { font-weight: 700 !important; color: #4f46e5 !important; font-size: 15px !important; }\n\n  .total-section {\n    background: linear-gradient(135deg, #0f0c29, #302b63);\n    border-radius: 16px;\n    padding: 36px 40px;\n    display: flex;\n    justify-content: space-between;\n    align-items: center;\n    margin-top: 24px;\n    page-break-inside: avoid;\n  }\n  .total-left .total-label { font-size: 12px; color: rgba(255,255,255,0.5); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }\n  .total-left .total-amount { font-size: 42px; font-weight: 800; color: white; }\n  .total-left .total-currency { font-size: 16px; color: rgba(255,255,255,0.5); margin-left: 6px; }\n  .total-right { text-align: right; }\n  .total-right .validity { font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 6px; }\n  .total-right .validity-date { font-size: 15px; color: #a5b4fc; font-weight: 600; }\n  .total-right .payment { margin-top: 12px; font-size: 13px; color: rgba(255,255,255,0.5); }\n\n  .terms-grid {\n    display: grid;\n    grid-template-columns: 1fr 1fr;\n    gap: 16px;\n    page-break-inside: avoid;\n  }\n  .term-item {\n    background: #f8faff;\n    border: 1px solid #e8eeff;\n    border-radius: 10px;\n    padding: 18px 20px;\n    display: flex;\n    gap: 14px;\n    align-items: flex-start;\n    page-break-inside: avoid;\n  }\n  .term-icon { font-size: 18px; flex-shrink: 0; }\n  .term-text { font-size: 13px; color: #64748b; line-height: 1.6; }\n  .term-text strong { color: #334155; display: block; margin-bottom: 4px; font-size: 14px; }\n\n  .signature-section {\n    display: flex;\n    justify-content: space-between;\n    align-items: flex-end;\n    margin-top: 60px;\n    padding-top: 40px;\n    border-top: 2px solid #f1f5f9;\n    page-break-inside: avoid;\n  }\n  .sig-block { text-align: center; }\n  .sig-line { width: 180px; border-top: 2px solid #cbd5e1; margin: 0 auto 10px; padding-top: 10px; }\n  .sig-name { font-size: 15px; font-weight: 700; color: #1e293b; }\n  .sig-role { font-size: 12px; color: #94a3b8; margin-top: 2px; }\n\n  .footer-note {\n    text-align: center;\n    font-size: 11px;\n    color: #cbd5e1;\n    margin-top: 40px;\n    padding-top: 20px;\n    border-top: 1px solid #f1f5f9;\n    page-break-inside: avoid;\n  }\n</style>\n</head>\n<body>\n\n<div class=\"cover\">\n  <div class=\"cover-top\">\n    <div class=\"cover-logo\">{{EMPRESA_EMISOR}}</div>\n    <div class=\"cover-badge\">Propuesta Comercial Confidencial</div>\n    <div class=\"cover-title\">Propuesta para <span>{{NOMBRE_CLIENTE}}</span></div>\n    <div class=\"cover-subtitle\">{{SERVICIO_PRINCIPAL}}</div>\n  </div>\n  <div class=\"cover-bottom\">\n    <div class=\"cover-client\">\n      <div class=\"cover-client-label\">Preparado para</div>\n      <div class=\"cover-client-name\">{{NOMBRE_CLIENTE}}</div>\n      <div class=\"cover-client-company\">{{EMPRESA_CLIENTE}}</div>\n    </div>\n    <div class=\"cover-meta\">\n      <div><strong>Fecha:</strong> {{FECHA}}</div>\n      <div><strong>N° Propuesta:</strong> {{NUMERO_PROPUESTA}}</div>\n      <div><strong>Válida hasta:</strong> {{FECHA_VALIDEZ}}</div>\n    </div>\n  </div>\n</div>\n\n<div class=\"page\">\n  <div class=\"page-header\">\n    <div class=\"page-header-brand\">{{EMPRESA_EMISOR}}</div>\n    <div class=\"page-header-info\">Propuesta N° {{NUMERO_PROPUESTA}} · {{FECHA}}</div>\n  </div>\n\n  <div class=\"section\">\n    <div class=\"section-label\">Introducción</div>\n    <p class=\"intro-text\">{{INTRODUCCION}}</p>\n    <div class=\"highlight-box\">\n      <p>\"{{FRASE_DESTACADA}}\"</p>\n    </div>\n  </div>\n\n  <div class=\"section\">\n    <div class=\"section-label\">Detalle de Servicios</div>\n    <table class=\"service-table\">\n      <thead>\n        <tr>\n          <th>#</th>\n          <th>Servicio</th>\n          <th>Descripción</th>\n          <th>Plazo</th>\n          <th>Inversión</th>\n        </tr>\n      </thead>\n      <tbody>\n        {{FILAS_SERVICIOS}}\n      </tbody>\n    </table>\n    <div class=\"total-section\">\n      <div class=\"total-left\">\n        <div class=\"total-label\">Inversión Total</div>\n        <div class=\"total-amount\">{{PRECIO_TOTAL}}<span class=\"total-currency\">{{MONEDA}}</span></div>\n      </div>\n      <div class=\"total-right\">\n        <div class=\"validity\">Oferta válida hasta</div>\n        <div class=\"validity-date\">{{FECHA_VALIDEZ}}</div>\n        <div class=\"payment\">{{CONDICION_PAGO}}</div>\n      </div>\n    </div>\n  </div>\n\n  <div class=\"section\" style=\"page-break-before: always; padding-top: 60px;\">\n    <div class=\"section-label\">Términos y Condiciones</div>\n    <div class=\"terms-grid\">\n      {{TERMINOS}}\n    </div>\n  </div>\n\n  <div class=\"signature-section\">\n    <div class=\"sig-block\">\n      <div class=\"sig-line\"></div>\n      <div class=\"sig-name\">{{NOMBRE_EMISOR}}</div>\n      <div class=\"sig-role\">{{EMPRESA_EMISOR}}</div>\n    </div>\n    <div class=\"sig-block\">\n      <div class=\"sig-line\"></div>\n      <div class=\"sig-name\">{{NOMBRE_CLIENTE}}</div>\n      <div class=\"sig-role\">Aprobación del Cliente</div>\n    </div>\n  </div>\n\n  <div class=\"footer-note\">\n    Este documento es confidencial y fue preparado exclusivamente para {{NOMBRE_CLIENTE}} · {{EMPRESA_EMISOR}} © {{ANIO}}\n  </div>\n</div>\n\n</body>\n</html>\n\n[HTML_END]\n\nCuando tengas todos los datos, reemplazá todos los {{PLACEHOLDERS}} del HTML con la información real del cliente y generá el HTML completo listo para convertir a PDF.\n\nPara FILAS_SERVICIOS usá este formato por cada servicio:\n<tr><td>1</td><td>Nombre servicio</td><td>Descripción</td><td>Plazo</td><td class=\"price-cell\">$XX.XXX</td></tr>\n\nPara TERMINOS usá este formato por cada uno:\n<div class=\"term-item\"><div class=\"term-icon\">✓</div><div class=\"term-text\"><strong>Título</strong>Descripción breve</div></div>\n\nGenerá al menos 4 términos típicos como: Forma de pago, Revisiones incluidas, Confidencialidad, Soporte post-entrega."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -496,
+        -624
+      ],
+      "id": "893c1e78-3693-49a4-a759-1a1bbd1800a2",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -656,
+        -400
+      ],
+      "id": "30241c2d-966f-4360-8f3f-b5f4e7f702cd",
+      "name": "Groq"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -512,
+        -368
+      ],
+      "id": "043d5503-59e2-4456-a0eb-a5d65d0ace20",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "72b253d8-c248-4034-a6b6-d234971dcb80",
+              "name": "htmlContent",
+              "value": "={{ $json.output.replace(/[\\s\\S]*\\[HTML_START\\]\\s*/,'').replace(/\\s*\\[HTML_END\\][\\s\\S]*/,'') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -208,
+        -624
+      ],
+      "id": "0633e091-b227-47b7-ae9b-49e3bf0c0372",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pdfshift.io/v3/convert/pdf",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "YOUR_PDFSHIFT_API_KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "source",
+              "value": "={{ $json.htmlContent }}"
+            },
+            {
+              "name": "filename",
+              "value": "propuesta.pdf"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        256,
+        -640
+      ],
+      "id": "4b6862a5-b414-49ca-98ca-5cf9445a1e38",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9966e23c-11c4-4267-a37e-3b9edfb9cf04",
+              "leftValue": "={{ $json.htmlContent }}",
+              "rightValue": "<!DOCTYPE",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "8b10a865-1c90-4015-b877-21670f742f93",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        -624
+      ],
+      "id": "78f430d3-e50a-4122-aa60-773bf380ca90",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "thiagopipero03@gmail.com",
+        "subject": "=Propuesta Comercial - [nombre cliente]",
+        "emailType": "text",
+        "message": "=Adjunto encontrás tu propuesta comercial. Cualquier consulta estamos a disposición.\n\n{{ $json.url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        -640
+      ],
+      "id": "54afeb95-098c-4605-be3c-e54b3b8eaece",
+      "name": "Send a message",
+      "webhookId": "12501355-b64b-48f6-9f78-a070ec9e10af"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "70a7e048-850c-4427-9a81-55b7fb2ce005",
+              "leftValue": "={{ $json.files ? $json.files[0].mimeType : '' }}",
+              "rightValue": "audio",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -912,
+        -640
+      ],
+      "id": "ff515919-21fd-45d9-83d7-0e666cbf33ee",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/audio/transcriptions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "={{ $binary.data }}"
+            },
+            {
+              "name": "model",
+              "value": "whisper-large-v3"
+            },
+            {
+              "name": "language",
+              "value": "es"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -768,
+        -832
+      ],
+      "id": "af0e2922-74e0-4de4-bbcb-4d990f12f490",
+      "name": "groq whisper"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7fae8038-d957-4719-8c40-a6b7f7d1f913",
+              "name": "chatInput",
+              "value": "=TRANSCRIPCIÓN: {{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -624,
+        -832
+      ],
+      "id": "848a6fab-fd57-4d49-80a8-3c0a60e5a6b9",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1120,
+        -640
+      ],
+      "id": "f350a75d-d359-4375-a6f7-531f3ea68d3a",
+      "name": "Telegram Trigger1",
+      "webhookId": "ce768bf4-125c-41b4-8c60-74a2a47db051"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Groq": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "groq whisper",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "groq whisper": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "d413c095-f1fc-4885-822d-0c3b2cc477ed",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b006b719ffb3bddfa5d99e4e188619ae034464cf86499575247cb962f892d951"
+  },
+  "id": "iTNKDTv4xa4nh16a",
+  "tags": []
+}
